@@ -240,19 +240,25 @@ export const ImageCollection: React.FC<ImageCollectionProps> = ({
                     }}
                   />
                 </div>
-                <div className="p-3 bg-slate-800 flex justify-between items-center border-t border-slate-700 gap-2">
-                  <input
-                    className="text-xs text-slate-300 bg-transparent border border-transparent hover:border-slate-600 focus:border-blue-500 focus:bg-slate-900 focus:outline-none rounded px-1 py-0.5 truncate flex-1 transition-all"
-                    value={img.name}
-                    onChange={(e) => handleRename(img.id, e.target.value)}
-                    placeholder="Image Name"
-                  />
+                <div className="grid grid-cols-[1fr_auto] divide-x divide-slate-700 bg-slate-800 border-t border-slate-700">
+                  <div className="p-2 md:p-3 min-w-0 flex items-center">
+                    <input
+                      className="w-full text-[10px] md:text-xs text-slate-300 bg-transparent border border-transparent hover:border-slate-600 focus:border-blue-500 focus:bg-slate-900 focus:outline-none rounded px-1 py-0.5 truncate transition-all"
+                      value={img.name}
+                      onChange={(e) => handleRename(img.id, e.target.value)}
+                      placeholder="Image Name"
+                      onClick={(e) => e.stopPropagation()}
+                    />
+                  </div>
                   <button
-                    onClick={() => removeImage(img.id)}
-                    className="p-3 text-slate-400 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-colors shrink-0"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      removeImage(img.id);
+                    }}
+                    className="flex items-center justify-center px-4 md:px-3 text-slate-400 hover:text-red-400 hover:bg-red-400/10 transition-colors"
                     title="Remove image"
                   >
-                    <X size={20} />
+                    <X className="w-5 h-5" />
                   </button>
                 </div>
               </div>

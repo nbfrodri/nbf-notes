@@ -115,7 +115,7 @@ const SortableItem: React.FC<SortableItemProps> = ({
       }`}
     >
       {/* Main Item Row */}
-      <div className="flex items-center gap-3 p-4">
+      <div className="flex items-center gap-2 md:gap-3 p-3 md:p-4">
         {/* Drag Handle */}
         <div
           {...attributes}
@@ -141,7 +141,7 @@ const SortableItem: React.FC<SortableItemProps> = ({
           type="checkbox"
           checked={item.checked}
           onChange={(e) => updateItem(item.id, { checked: e.target.checked })}
-          className="w-6 h-6 rounded border-slate-600 bg-slate-700 text-emerald-500 focus:ring-emerald-500 focus:ring-offset-0 cursor-pointer shrink-0"
+          className="w-5 h-5 md:w-6 md:h-6 rounded border-slate-600 bg-slate-700 text-emerald-500 focus:ring-emerald-500 focus:ring-offset-0 cursor-pointer shrink-0"
         />
 
         <input
@@ -149,7 +149,7 @@ const SortableItem: React.FC<SortableItemProps> = ({
           value={item.text}
           onChange={(e) => updateItem(item.id, { text: e.target.value })}
           placeholder="Task title..."
-          className={`flex-1 bg-transparent border-none focus:ring-0 text-lg font-medium ${
+          className={`flex-1 bg-transparent border-none focus:ring-0 text-base md:text-lg font-medium min-w-0 ${
             item.checked
               ? "text-slate-500 line-through decoration-2 decoration-slate-600"
               : "text-slate-100"
@@ -163,7 +163,7 @@ const SortableItem: React.FC<SortableItemProps> = ({
 
         <button
           onClick={() => deleteItem(item.id)}
-          className="opacity-100 md:opacity-0 md:group-hover:opacity-100 p-3 text-slate-500 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-all shrink-0"
+          className="p-2 md:p-3 text-slate-500 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-all shrink-0"
         >
           <X size={20} />
         </button>
