@@ -1,11 +1,44 @@
 import React, { useState, useEffect } from "react";
 import { type Note } from "../types";
-import { Plus, X, ArrowUp, ArrowDown } from "lucide-react";
+import {
+  Plus,
+  X,
+  GripVertical,
+  ChevronDown,
+  ChevronRight,
+  CornerDownRight,
+} from "lucide-react";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+} from "@dnd-kit/core";
+import type { DragEndEvent } from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+
+interface SubTask {
+  id: string;
+  text: string;
+  checked: boolean;
+}
 
 interface ChecklistItem {
   id: string;
   text: string;
   checked: boolean;
+  description?: string;
+  subtasks?: SubTask[];
+  isExpanded?: boolean;
 }
 
 interface ChecklistEditorProps {
@@ -13,13 +46,223 @@ interface ChecklistEditorProps {
   onUpdate: (id: string, updates: Partial<Note>) => void;
 }
 
+interface SortableItemProps {
+  item: ChecklistItem;
+  updateItem: (id: string, updates: Partial<ChecklistItem>) => void;
+  deleteItem: (id: string) => void;
+  addItem: () => void;
+}
+
+const SortableItem: React.FC<SortableItemProps> = ({
+  item,
+  updateItem,
+  deleteItem,
+  addItem,
+}) => {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: item.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    zIndex: isDragging ? 10 : 1,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  const toggleExpand = () => {
+    updateItem(item.id, { isExpanded: !item.isExpanded });
+  };
+
+  const handleSubtaskAdd = () => {
+    const newSubtask: SubTask = {
+      id: crypto.randomUUID(),
+      text: "",
+      checked: false,
+    };
+    const currentSubtasks = item.subtasks || [];
+    updateItem(item.id, { subtasks: [...currentSubtasks, newSubtask] });
+  };
+
+  const handleSubtaskUpdate = (
+    subtaskId: string,
+    updates: Partial<SubTask>,
+  ) => {
+    if (!item.subtasks) return;
+    const newSubtasks = item.subtasks.map((st) =>
+      st.id === subtaskId ? { ...st, ...updates } : st,
+    );
+    updateItem(item.id, { subtasks: newSubtasks });
+  };
+
+  const handleSubtaskDelete = (subtaskId: string) => {
+    if (!item.subtasks) return;
+    const newSubtasks = item.subtasks.filter((st) => st.id !== subtaskId);
+    updateItem(item.id, { subtasks: newSubtasks });
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={`flex flex-col bg-slate-800/50 rounded-xl border border-white/5 group transition-colors hover:border-white/10 ${
+        isDragging ? "shadow-xl border-blue-500/50" : ""
+      }`}
+    >
+      {/* Main Item Row */}
+      <div className="flex items-center gap-3 p-4">
+        {/* Drag Handle */}
+        <div
+          {...attributes}
+          {...listeners}
+          className="cursor-grab active:cursor-grabbing text-slate-600 hover:text-slate-400 p-1 shrink-0"
+        >
+          <GripVertical size={20} />
+        </div>
+
+        {/* Expand Toggle */}
+        <button
+          onClick={toggleExpand}
+          className="text-slate-500 hover:text-slate-300 transition-colors p-1 shrink-0"
+        >
+          {item.isExpanded ? (
+            <ChevronDown size={20} />
+          ) : (
+            <ChevronRight size={20} />
+          )}
+        </button>
+
+        <input
+          type="checkbox"
+          checked={item.checked}
+          onChange={(e) => updateItem(item.id, { checked: e.target.checked })}
+          className="w-5 h-5 rounded border-slate-600 bg-slate-700 text-emerald-500 focus:ring-emerald-500 focus:ring-offset-0 cursor-pointer shrink-0"
+        />
+
+        <input
+          type="text"
+          value={item.text}
+          onChange={(e) => updateItem(item.id, { text: e.target.value })}
+          placeholder="Task title..."
+          className={`flex-1 bg-transparent border-none focus:ring-0 text-lg font-medium ${
+            item.checked
+              ? "text-slate-500 line-through decoration-2 decoration-slate-600"
+              : "text-slate-100"
+          }`}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              addItem();
+            }
+          }}
+        />
+
+        <button
+          onClick={() => deleteItem(item.id)}
+          className="opacity-0 group-hover:opacity-100 p-2 text-slate-500 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-all shrink-0"
+        >
+          <X size={18} />
+        </button>
+      </div>
+
+      {/* Expanded Content */}
+      {item.isExpanded && !isDragging && (
+        <div className="px-12 pb-6 pt-0 space-y-4 animate-in slide-in-from-top-2 duration-200">
+          {/* Description */}
+          <div className="relative">
+            <textarea
+              value={item.description || ""}
+              onChange={(e) =>
+                updateItem(item.id, { description: e.target.value })
+              }
+              placeholder="Add detailed description..."
+              className="w-full bg-slate-900/50 text-slate-300 text-sm rounded-lg border border-white/5 focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/20 p-3 min-h-[80px] resize-y placeholder-slate-600"
+            />
+          </div>
+
+          {/* Subtasks */}
+          <div className="space-y-2">
+            <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">
+              Subtasks
+            </h4>
+
+            {(item.subtasks || []).map((subtask) => (
+              <div
+                key={subtask.id}
+                className="flex items-center gap-3 group/sub"
+              >
+                <CornerDownRight
+                  size={14}
+                  className="text-slate-600 shrink-0"
+                />
+                <input
+                  type="checkbox"
+                  checked={subtask.checked}
+                  onChange={(e) =>
+                    handleSubtaskUpdate(subtask.id, {
+                      checked: e.target.checked,
+                    })
+                  }
+                  className="w-4 h-4 rounded border-slate-600 bg-slate-700 text-emerald-500 focus:ring-emerald-500 focus:ring-offset-0 cursor-pointer shrink-0"
+                />
+                <input
+                  type="text"
+                  value={subtask.text}
+                  onChange={(e) =>
+                    handleSubtaskUpdate(subtask.id, { text: e.target.value })
+                  }
+                  placeholder="Subtask..."
+                  className={`flex-1 bg-transparent border-none focus:ring-0 text-sm ${
+                    subtask.checked
+                      ? "text-slate-600 line-through"
+                      : "text-slate-300"
+                  }`}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      handleSubtaskAdd();
+                    }
+                  }}
+                />
+                <button
+                  onClick={() => handleSubtaskDelete(subtask.id)}
+                  className="opacity-0 group-hover/sub:opacity-100 p-1 text-slate-600 hover:text-red-400 transition-all shrink-0"
+                >
+                  <X size={14} />
+                </button>
+              </div>
+            ))}
+
+            <button
+              onClick={handleSubtaskAdd}
+              className="flex items-center gap-2 text-xs text-blue-400 hover:text-blue-300 transition-colors mt-2 ml-7"
+            >
+              <Plus size={14} />
+              Add Subtask
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
 export const ChecklistEditor: React.FC<ChecklistEditorProps> = ({
   note,
   onUpdate,
 }) => {
   const [items, setItems] = useState<ChecklistItem[]>([]);
 
-  // Parse items from content on load
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    }),
+  );
+
   useEffect(() => {
     if (note?.content) {
       try {
@@ -27,7 +270,6 @@ export const ChecklistEditor: React.FC<ChecklistEditorProps> = ({
         if (Array.isArray(parsed)) {
           setItems(parsed);
         } else {
-          // Fallback for empty or newly converted notes
           setItems([]);
         }
       } catch {
@@ -36,8 +278,7 @@ export const ChecklistEditor: React.FC<ChecklistEditorProps> = ({
     } else {
       setItems([]);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [note?.id]); // Only re-parse on note switch
+  }, [note?.id, note?.content]);
 
   const saveItems = (newItems: ChecklistItem[]) => {
     setItems(newItems);
@@ -66,17 +307,16 @@ export const ChecklistEditor: React.FC<ChecklistEditorProps> = ({
     saveItems(items.filter((item) => item.id !== id));
   };
 
-  const moveItem = (index: number, direction: "up" | "down") => {
-    if (direction === "up" && index === 0) return;
-    if (direction === "down" && index === items.length - 1) return;
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
 
-    const newItems = [...items];
-    const targetIndex = direction === "up" ? index - 1 : index + 1;
-    [newItems[index], newItems[targetIndex]] = [
-      newItems[targetIndex],
-      newItems[index],
-    ];
-    saveItems(newItems);
+    if (over && active.id !== over.id) {
+      const oldIndex = items.findIndex((item) => item.id === active.id);
+      const newIndex = items.findIndex((item) => item.id === over.id);
+
+      const newItems = arrayMove(items, oldIndex, newIndex);
+      saveItems(newItems);
+    }
   };
 
   if (!note) return null;
@@ -99,63 +339,25 @@ export const ChecklistEditor: React.FC<ChecklistEditorProps> = ({
         <span>Add Task</span>
       </button>
 
-      <div className="space-y-3">
-        {items.map((item, index) => (
-          <div
-            key={item.id}
-            className="flex items-center gap-3 p-4 bg-slate-800/50 rounded-xl border border-white/5 group transition-colors hover:border-white/10"
-          >
-            <div className="flex flex-col gap-1 text-slate-600">
-              <button
-                onClick={() => moveItem(index, "up")}
-                disabled={index === 0}
-                className="hover:text-slate-400 disabled:opacity-30 disabled:hover:text-slate-600 transition-colors"
-                title="Move Up"
-              >
-                <ArrowUp size={16} />
-              </button>
-              <button
-                onClick={() => moveItem(index, "down")}
-                disabled={index === items.length - 1}
-                className="hover:text-slate-400 disabled:opacity-30 disabled:hover:text-slate-600 transition-colors"
-                title="Move Down"
-              >
-                <ArrowDown size={16} />
-              </button>
-            </div>
-
-            <input
-              type="checkbox"
-              checked={item.checked}
-              onChange={(e) =>
-                updateItem(item.id, { checked: e.target.checked })
-              }
-              className="w-5 h-5 rounded border-slate-600 bg-slate-700 text-emerald-500 focus:ring-emerald-500 focus:ring-offset-0 cursor-pointer"
-            />
-
-            <input
-              type="text"
-              value={item.text}
-              onChange={(e) => updateItem(item.id, { text: e.target.value })}
-              placeholder="Task description..."
-              className={`flex-1 bg-transparent border-none focus:ring-0 text-lg ${item.checked ? "text-slate-500 line-through decoration-2 decoration-slate-600" : "text-slate-100"}`}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  addItem();
-                }
-              }}
-              autoFocus={item.text === ""}
-            />
-
-            <button
-              onClick={() => deleteItem(item.id)}
-              className="opacity-0 group-hover:opacity-100 p-2 text-slate-500 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-all"
-            >
-              <X size={18} />
-            </button>
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCenter}
+        onDragEnd={handleDragEnd}
+      >
+        <SortableContext items={items} strategy={verticalListSortingStrategy}>
+          <div className="space-y-3">
+            {items.map((item) => (
+              <SortableItem
+                key={item.id}
+                item={item}
+                updateItem={updateItem}
+                deleteItem={deleteItem}
+                addItem={addItem}
+              />
+            ))}
           </div>
-        ))}
-      </div>
+        </SortableContext>
+      </DndContext>
     </div>
   );
 };

@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { type Note } from "../types";
-import { Plus, X, Upload } from "lucide-react";
+import { Plus, X, Upload, ChevronLeft, ChevronRight } from "lucide-react";
 
 interface ImageCollectionProps {
   note: Note | undefined;
@@ -14,11 +14,10 @@ export const ImageCollection: React.FC<ImageCollectionProps> = ({
   const [images, setImages] = useState<
     { id: string; url: string; name: string }[]
   >([]);
-  const [selectedImage, setSelectedImage] = useState<{
-    id: string;
-    url: string;
-    name: string;
-  } | null>(null);
+  // Use index for navigation
+  const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(
+    null,
+  );
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Parse images from content on load
@@ -99,9 +98,18 @@ export const ImageCollection: React.FC<ImageCollectionProps> = ({
   };
 
   const removeImage = (idToRemove: string) => {
-    saveImages(images.filter((img) => img.id !== idToRemove));
-    if (selectedImage?.id === idToRemove) {
-      setSelectedImage(null);
+    const newImages = images.filter((img) => img.id !== idToRemove);
+    saveImages(newImages);
+    // Determine what to do with selection if current image is removed
+    if (selectedImageIndex !== null) {
+      const currentId = images[selectedImageIndex]?.id;
+      if (currentId === idToRemove) {
+        setSelectedImageIndex(null);
+      } else {
+        // Re-calculate index because it shifted
+        const newIndex = newImages.findIndex((img) => img.id === currentId);
+        setSelectedImageIndex(newIndex === -1 ? null : newIndex);
+      }
     }
   };
 
@@ -111,6 +119,38 @@ export const ImageCollection: React.FC<ImageCollectionProps> = ({
     );
     saveImages(updated);
   };
+
+  const goToNext = useCallback(() => {
+    setSelectedImageIndex((prev) => {
+      if (prev === null) return null;
+      return (prev + 1) % images.length;
+    });
+  }, [images.length]);
+
+  const goToPrev = useCallback(() => {
+    setSelectedImageIndex((prev) => {
+      if (prev === null) return null;
+      return (prev - 1 + images.length) % images.length;
+    });
+  }, [images.length]);
+
+  // Keyboard navigation
+  useEffect(() => {
+    if (selectedImageIndex === null) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "ArrowRight") {
+        goToNext();
+      } else if (e.key === "ArrowLeft") {
+        goToPrev();
+      } else if (e.key === "Escape") {
+        setSelectedImageIndex(null);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [selectedImageIndex, goToNext, goToPrev]);
 
   if (!note) return null;
 
@@ -140,14 +180,14 @@ export const ImageCollection: React.FC<ImageCollectionProps> = ({
           </div>
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 auto-rows-max pb-20">
-            {images.map((img) => (
+            {images.map((img, index) => (
               <div
                 key={img.id}
                 className="group relative flex flex-col bg-slate-800 rounded-xl overflow-hidden border border-slate-700 shadow-sm hover:shadow-md transition-all hover:border-slate-500"
               >
                 <div
                   className="aspect-square w-full overflow-hidden bg-slate-900 relative cursor-pointer"
-                  onClick={() => setSelectedImage(img)}
+                  onClick={() => setSelectedImageIndex(index)}
                   title="View full size"
                 >
                   <img
@@ -209,26 +249,49 @@ export const ImageCollection: React.FC<ImageCollectionProps> = ({
       </div>
 
       {/* Image Modal */}
-      {selectedImage && (
+      {selectedImageIndex !== null && images[selectedImageIndex] && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-8 animate-in fade-in duration-200"
-          onClick={() => setSelectedImage(null)}
+          onClick={() => setSelectedImageIndex(null)}
         >
+          {/* Close Button Removed as requested */}
+
+          {/* Previous Button */}
           <button
-            onClick={() => setSelectedImage(null)}
-            className="absolute top-4 right-4 text-white/50 hover:text-white transition-colors p-2"
+            className="absolute left-4 top-1/2 -translate-y-1/2 p-3 text-white/50 hover:text-white hover:bg-white/10 rounded-full transition-all z-50"
+            onClick={(e) => {
+              e.stopPropagation();
+              goToPrev();
+            }}
+            title="Previous Image (Left Arrow)"
           >
-            <X size={32} />
+            <ChevronLeft size={48} />
           </button>
+
+          {/* Next Button */}
+          <button
+            className="absolute right-4 top-1/2 -translate-y-1/2 p-3 text-white/50 hover:text-white hover:bg-white/10 rounded-full transition-all z-50"
+            onClick={(e) => {
+              e.stopPropagation();
+              goToNext();
+            }}
+            title="Next Image (Right Arrow)"
+          >
+            <ChevronRight size={48} />
+          </button>
+
+          {/* Image */}
           <img
-            src={selectedImage.url}
-            alt={selectedImage.name}
+            src={images[selectedImageIndex].url}
+            alt={images[selectedImageIndex].name}
             className="max-w-full max-h-full object-contain rounded-lg shadow-2xl"
-            onClick={(e) => e.stopPropagation()} // Prevent clicking image from closing modal
+            onClick={(e) => e.stopPropagation()}
           />
-          <div className="absolute bottom-8 left-0 right-0 text-center">
+
+          <div className="absolute bottom-8 left-0 right-0 text-center pointer-events-none">
             <span className="text-white/80 bg-black/50 px-4 py-2 rounded-full text-sm font-medium backdrop-blur-sm">
-              {selectedImage.name}
+              {images[selectedImageIndex].name} ({selectedImageIndex + 1} /{" "}
+              {images.length})
             </span>
           </div>
         </div>

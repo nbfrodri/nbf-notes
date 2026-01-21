@@ -92,3 +92,61 @@ li[data-type="taskItem"] p {
   margin: 0 !important;
   line-height: 1.6;
 }
+
+/* Line Numbers */
+.show-line-numbers {
+  counter-reset: line-number;
+}
+
+.show-line-numbers p {
+  position: relative;
+  padding-left: 2rem; /* Make space for the number */
+}
+
+.show-line-numbers p::before {
+  counter-increment: line-number;
+  content: counter(line-number);
+  position: absolute;
+  left: 0;
+  top: 0;
+  color: #64748b; /* slate-500 */
+  font-size: 13px; /* Fixed size, independent of text size */
+  line-height: 1.6; /* Match default line height roughly */
+  font-variant-numeric: tabular-nums;
+  user-select: none;
+  width: 1.5rem;
+  text-align: right;
+  padding-right: 0.5rem;
+}
+
+/* Headings also need numbers? Usually line numbers apply to all blocks in a code editor style */
+.show-line-numbers h1,
+.show-line-numbers h2,
+.show-line-numbers h3,
+.show-line-numbers blockquote,
+.show-line-numbers ul,
+.show-line-numbers ol {
+  position: relative;
+  padding-left: 2rem;
+}
+.show-line-numbers h1::before,
+.show-line-numbers h2::before,
+.show-line-numbers h3::before,
+.show-line-numbers blockquote::before,
+.show-line-numbers ul::before,
+.show-line-numbers ol::before {
+  counter-increment: line-number;
+  content: counter(line-number);
+  position: absolute;
+  left: 0;
+  top: 0;
+  color: #64748b;
+  font-size: 13px;
+  line-height: 1.6;
+  font-variant-numeric: tabular-nums;
+  user-select: none;
+  font-weight: normal; /* Don't bold the number on headings */
+  width: 1.5rem;
+  text-align: right;
+  padding-right: 0.5rem;
+}

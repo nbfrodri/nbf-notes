@@ -27,11 +27,9 @@ function createWindow() {
       color: "#0f172a",
       symbolColor: "#ffffff",
     },
-    // Icon path: in dev node_modules/electron/... so we need to step out to root then public
-    // But __dirname is dist-electron.
-    // Ideally use path.join(__dirname, '../public/icon.png') if copied there?
-    // Or just path.join(process.cwd(), 'public/icon.png') which works for dev mostly.
-    icon: path.join(__dirname, "../public/icon.png"),
+    icon: app.isPackaged
+      ? path.join(__dirname, "../dist/icon.png")
+      : path.join(__dirname, "../public/icon.png"),
     backgroundColor: "#0f172a", // Prevent white flash
   });
 

@@ -30,8 +30,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
   return (
     <div className="flex flex-col h-full bg-slate-950 text-slate-300">
-      <div className="p-4 pt-10 border-b border-white/5">
-        <h1 className="text-xl font-bold bg-linear-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+      <div className="p-6 pt-12 border-b border-white/5 relative">
+        <h1 className="text-3xl font-bold bg-linear-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent text-center">
           NBF Notes
         </h1>
       </div>
@@ -50,7 +50,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                         }
                     `}
           >
-            <div className="font-medium truncate pr-6 flex items-center gap-2">
+            <div className="font-medium truncate pr-10 flex items-center gap-2 text-lg">
               {getTypeIcon(note.type)}
               <span className="truncate">{note.title || "Untitled Note"}</span>
             </div>
@@ -60,10 +60,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
             <button
               onClick={(e) => onDeleteNote(note.id, e)}
-              className="absolute right-2 top-3 opacity-0 group-hover:opacity-100 hover:text-red-400 transition-opacity p-1"
+              className="absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 text-slate-400 hover:text-red-400 hover:bg-red-900/20 rounded-md transition-all p-2"
               title="Delete note"
             >
-              ×
+              <span className="text-xl leading-none">×</span>
             </button>
           </div>
         ))}
