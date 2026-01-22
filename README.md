@@ -31,26 +31,33 @@ A powerful writing experience powered by **TipTap**, now fully responsive:
 
 ### 📂 Smart Organization
 
-- +- **Folders**: Create folders to organize your notes.
-  +- **Drag & Drop Reordering**: Long-press and drag to reorder notes, folders, tasks, and images on both desktop and mobile.
-  +- **Drag to Move**: Drag notes into folders to file them away.
-- +### ✅ Advanced Checklists
-- +Stay organized with a task manager that goes beyond simple checkboxes:
-- +- **Drag & Drop**: Reorder your tasks intuitively using **@dnd-kit** (works with touch!).
-  +- **Deep Details**: Expand any task to add a detailed **description**.
-  +- **Subtasks**: Break down complex items into manageable sub-steps.
-- +### 🖼️ Image Collections & Gestures
-- +- **Visual Notes**: Create dedicated folders for your images.
-  +- **Swipe Navigation**: On mobile, simple **swipe left/right** gestures let you browse your gallery effortlessly.
-  +- **Drag Reordering**: Organize your image collections by dragging images to new positions.
-  +- **Native Storage**: Uses your device's native file system for efficient storage.
-- +### 🎨 Modern UI
-- +- **Responsive Design**: Automatically adapts from a desktop sidebar to a mobile **Drawer Navigation** with hamburger menu.
-  +- **Mobile Optimized**: Sidebar allows swipe gestures, and modals are designed for touch.
-  +- **Safe Area Aware**: Designed to respect mobile notches and status bars.
-  +- **Dark Mode**: Built with a "dark-first" aesthetic using **TailwindCSS**.
+- **Folders**: Create folders to organize your notes.
+- **Drag & Drop Reordering**: Long-press and drag to reorder notes, folders, tasks, and images on both desktop and mobile.
+- **Drag to Move**: Drag notes into folders to file them away.
 
-  ***
+### ✅ Advanced Checklists
+
+Stay organized with a task manager that goes beyond simple checkboxes:
+
+- **Drag & Drop**: Reorder your tasks intuitively using **@dnd-kit** (works with touch!).
+- **Deep Details**: Expand any task to add a detailed **description**.
+- **Subtasks**: Break down complex items into manageable sub-steps.
+
+### 🖼️ Image Collections & Gestures
+
+- **Visual Notes**: Create dedicated folders for your images.
+- **Swipe Navigation**: On mobile, simple **swipe left/right** gestures let you browse your gallery effortlessly.
+- **Drag Reordering**: Organize your image collections by dragging images to new positions.
+- **Native Storage**: Uses your device's native file system for efficient storage.
+
+### 🎨 Modern UI
+
+- **Responsive Design**: Automatically adapts from a desktop sidebar to a mobile **Drawer Navigation** with hamburger menu.
+- **Mobile Optimized**: Sidebar allows swipe gestures, and modals are designed for touch.
+- **Safe Area Aware**: Designed to respect mobile notches and status bars.
+- **Dark Mode**: Built with a "dark-first" aesthetic using **TailwindCSS**.
+
+---
 
 ## 🛠️ Tech Stack
 
@@ -77,23 +84,26 @@ This project leverages the latest ecosystem tools for maximum performance:
 ### Installation
 
 1. **Clone the repository**
+
    ```bash
    git clone https://github.com/nbfrodri/proton-notes.git
    ```
+
 2. **Install Dependencies**
+
    ```bash
    npm install
    ```
 
 ### Running Locally
 
-**🖥️ Desktop (Development)**
+#### 🖥️ Desktop (Development)
 
 ```bash
 npm run electron:dev
 ```
 
-**📱 Mobile (Android)**
+#### 📱 Mobile (Android)
 
 ```bash
 # First, build the web assets
@@ -106,7 +116,7 @@ npx cap open android
 
 ### Build for Release
 
-**Windows Installer (.exe)**
+#### Windows Installer (.exe)
 
 ```bash
 npm run dist
@@ -114,7 +124,8 @@ npm run dist
 
 _Generates an installer in the `release` folder._
 
-**Android APK**
+#### Android APK
+
 Build via Android Studio: `Build > Build Bundle(s) / APK(s) > Build APK(s)`.
 
 ---
