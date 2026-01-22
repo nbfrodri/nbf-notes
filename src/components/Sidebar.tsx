@@ -115,7 +115,7 @@ const NoteItem = ({
       </span>
       <button
         onClick={(e) => onDeleteNote(note.id, e)}
-        className="opacity-0 group-hover:opacity-100 p-1 text-slate-500 hover:text-red-400 hover:bg-red-400/10 rounded-md transition-all md:block"
+        className="opacity-100 md:opacity-0 md:group-hover:opacity-100 p-1 text-slate-500 hover:text-red-400 hover:bg-red-400/10 rounded-md transition-all md:block"
         title="Delete note"
         onPointerDown={(e) => e.stopPropagation()} // Prevent drag start on delete button
       >
@@ -251,7 +251,7 @@ const FolderItem = ({
             </>
           )}
         </div>
-        <div className="flex items-center opacity-0 group-hover:opacity-100 transition-opacity">
+        <div className="flex items-center opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
           <button
             onClick={(e) => {
               e.stopPropagation();

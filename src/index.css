@@ -19,12 +19,9 @@
 
 body {
   @apply bg-slate-900 text-slate-100;
+  color-scheme: dark;
   margin: 0;
-  font-family:
-    "Inter",
-    system-ui,
-    -apple-system,
-    sans-serif;
+  font-family: "Inter", system-ui, -apple-system, sans-serif;
   animation: fadeIn 0.5s ease-out forwards;
 }
 

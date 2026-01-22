@@ -230,7 +230,7 @@ const SortableItem: React.FC<SortableItemProps> = ({
                 />
                 <button
                   onClick={() => handleSubtaskDelete(subtask.id)}
-                  className="opacity-0 group-hover/sub:opacity-100 p-1 text-slate-600 hover:text-red-400 transition-all shrink-0"
+                  className="opacity-100 md:opacity-0 md:group-hover/sub:opacity-100 p-1 text-slate-600 hover:text-red-400 transition-all shrink-0"
                 >
                   <X size={14} />
                 </button>
