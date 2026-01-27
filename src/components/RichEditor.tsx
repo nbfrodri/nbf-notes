@@ -113,8 +113,9 @@ const MenuButton = ({
     }}
     title={title}
     className={twMerge(
-      "p-2 rounded hover:bg-slate-700 transition-colors text-slate-400 hover:text-slate-100",
-      isActive && "bg-slate-700 text-slate-100",
+      "p-2 rounded hover:bg-cyan-500/20 hover:text-cyan-200 transition-all text-slate-400",
+      isActive &&
+        "bg-cyan-500/20 text-cyan-200 shadow-[0_0_10px_rgba(0,255,255,0.2)]",
       className,
     )}
   >
@@ -132,13 +133,14 @@ export const RichEditor: React.FC<RichEditorProps> = ({ note, onUpdate }) => {
       StarterKit.configure({
         codeBlock: {
           HTMLAttributes: {
-            class: "bg-slate-800 p-3 rounded-lg font-mono text-sm my-2",
+            class:
+              "bg-slate-900/50 border border-cyan-500/20 p-3 rounded-lg font-mono text-sm my-2 text-cyan-100 shadow-[0_0_15px_rgba(0,255,255,0.05)]",
           },
         },
         blockquote: {
           HTMLAttributes: {
             class:
-              "border-l-4 border-slate-500 pl-4 italic my-2 text-slate-400",
+              "border-l-4 border-fuchsia-500 pl-4 italic my-2 text-slate-300 bg-fuchsia-500/5 py-1 rounded-r-lg",
           },
         },
       }),
@@ -156,7 +158,7 @@ export const RichEditor: React.FC<RichEditorProps> = ({ note, onUpdate }) => {
         defaultProtocol: "https",
         HTMLAttributes: {
           class:
-            "text-blue-400 underline cursor-pointer hover:text-blue-300 transition-colors",
+            "text-cyan-400 underline cursor-pointer hover:text-cyan-300 transition-colors drop-shadow-[0_0_5px_rgba(0,255,255,0.4)]",
         },
       }),
     ],
@@ -164,7 +166,7 @@ export const RichEditor: React.FC<RichEditorProps> = ({ note, onUpdate }) => {
     editorProps: {
       attributes: {
         class: twMerge(
-          "prose prose-invert prose-lg max-w-none focus:outline-none [&_ul[data-type='taskList']]:list-none [&_ul[data-type='taskList']]:p-0 [&_li[data-type='taskItem']]:flex [&_li[data-type='taskItem']]:gap-2 [&_li[data-type='taskItem']]:items-start [&_input[type='checkbox']]:mt-1.5",
+          "prose prose-invert prose-lg max-w-none focus:outline-none [&_ul[data-type='taskList']]:list-none [&_ul[data-type='taskList']]:p-0 [&_li[data-type='taskItem']]:flex [&_li[data-type='taskItem']]:gap-2 [&_li[data-type='taskItem']]:items-start [&_input[type='checkbox']]:mt-1.5 focus:prose-p:!text-slate-200 prose-headings:text-cyan-300 prose-headings:drop-shadow-[0_0_5px_rgba(0,255,255,0.3)] prose-strong:text-fuchsia-400 prose-em:text-cyan-200 prose-a:text-cyan-400 prose-a:no-underline hover:prose-a:underline prose-a:drop-shadow-[0_0_5px_rgba(0,255,255,0.4)] prose-blockquote:border-fuchsia-500 prose-blockquote:bg-fuchsia-500/5 prose-blockquote:text-slate-300 prose-code:text-cyan-200 prose-code:bg-slate-800/50 prose-code:px-1 prose-code:rounded prose-li:marker:text-fuchsia-500",
           showLineNumbers && "show-line-numbers",
         ),
       },
@@ -294,11 +296,11 @@ export const RichEditor: React.FC<RichEditorProps> = ({ note, onUpdate }) => {
         value={note.title}
         onChange={(e) => onUpdate(note.id, { title: e.target.value })}
         placeholder="Note Title"
-        className="bg-transparent text-4xl font-bold text-white placeholder-slate-600 focus:outline-none mb-6 w-full"
+        className="bg-transparent text-4xl font-bold text-white placeholder-slate-600 focus:outline-none mb-6 w-full drop-shadow-[0_0_10px_rgba(255,255,255,0.2)]"
       />
 
       {/* Toolbar */}
-      <div className="flex flex-col md:flex-row md:flex-wrap items-stretch md:items-center gap-2 p-2 mb-4 border-b border-slate-800 sticky top-0 bg-slate-900/95 backdrop-blur z-10">
+      <div className="flex flex-col md:flex-row md:flex-wrap items-stretch md:items-center gap-2 p-2 mb-4 border-b border-white/10 sticky top-0 bg-slate-900/60 backdrop-blur-xl z-10 rounded-xl border border-white/5 shadow-glass">
         {/* Row 1: Basic Formatting & Color */}
         <div className="flex items-center justify-between md:justify-start gap-1 p-1 bg-slate-800/50 rounded-lg md:bg-transparent md:p-0">
           <MenuButton

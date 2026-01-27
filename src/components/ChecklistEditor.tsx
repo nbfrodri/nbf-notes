@@ -111,8 +111,10 @@ const SortableItem: React.FC<SortableItemProps> = ({
     <div
       ref={setNodeRef}
       style={style}
-      className={`flex flex-col bg-slate-800/50 rounded-xl border border-white/5 group transition-colors hover:border-white/10 ${
-        isDragging ? "shadow-xl border-blue-500/50" : ""
+      className={`flex flex-col bg-slate-900/40 backdrop-blur-md rounded-xl border border-white/5 group transition-colors duration-200 hover:border-cyan-500/50 hover:shadow-[0_0_15px_rgba(0,255,255,0.1)] hover:bg-slate-900/60 ${
+        isDragging
+          ? "shadow-[0_0_30px_rgba(0,255,255,0.2)] border-cyan-500 z-50 bg-slate-900/90 scale-[1.02]"
+          : "hover:translate-y-[-2px]"
       }`}
     >
       {/* Main Item Row */}
@@ -142,7 +144,7 @@ const SortableItem: React.FC<SortableItemProps> = ({
           type="checkbox"
           checked={item.checked}
           onChange={(e) => updateItem(item.id, { checked: e.target.checked })}
-          className="w-5 h-5 md:w-6 md:h-6 rounded border-slate-600 bg-slate-700 text-emerald-500 focus:ring-emerald-500 focus:ring-offset-0 cursor-pointer shrink-0"
+          className="w-5 h-5 md:w-6 md:h-6 rounded border-slate-600 bg-slate-700/50 text-cyan-400 focus:ring-cyan-500 focus:ring-offset-0 cursor-pointer shrink-0 shadow-[0_0_5px_rgba(0,255,255,0.2)]"
         />
 
         <input
@@ -339,12 +341,12 @@ export const ChecklistEditor: React.FC<ChecklistEditorProps> = ({
         value={note.title}
         onChange={(e) => onUpdate(note.id, { title: e.target.value })}
         placeholder="Checklist Title"
-        className="bg-transparent text-4xl font-bold text-white placeholder-slate-600 focus:outline-none mb-8 w-full"
+        className="bg-transparent text-4xl font-bold text-white placeholder-slate-600 focus:outline-none mb-8 w-full drop-shadow-[0_0_10px_rgba(255,255,255,0.2)]"
       />
 
       <button
         onClick={addItem}
-        className="mb-6 flex items-center gap-2 text-slate-400 hover:text-emerald-400 transition-colors py-2 px-4 rounded-lg border border-dashed border-slate-700 hover:border-emerald-400/50 w-full justify-center"
+        className="mb-6 flex items-center gap-2 text-slate-400 hover:text-cyan-300 transition-all py-2 px-4 rounded-lg border border-dashed border-slate-700 hover:border-cyan-500/50 w-full justify-center hover:bg-cyan-500/5 hover:shadow-[0_0_10px_rgba(0,255,255,0.1)]"
       >
         <Plus size={20} />
         <span>Add Task</span>

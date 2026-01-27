@@ -15,7 +15,7 @@ export const Layout: React.FC<LayoutProps> = ({
   onSidebarChange,
 }) => {
   return (
-    <div className="flex h-screen w-screen bg-slate-900 text-slate-100 overflow-hidden relative">
+    <div className="flex h-screen w-screen bg-transparent text-slate-100 overflow-hidden relative">
       {/* Mobile Overlay */}
       {isSidebarOpen && (
         <div
@@ -27,12 +27,13 @@ export const Layout: React.FC<LayoutProps> = ({
       {/* Sidebar */}
       <aside
         className={`
-          fixed z-50 flex flex-col shadow-2xl transition-all duration-300 ease-in-out
-          md:relative md:inset-auto md:top-0 md:left-0 md:transform-none md:w-64 md:h-full md:shadow-none md:border-r md:border-slate-800 md:opacity-100 md:pointer-events-auto md:bg-slate-950 md:rounded-none md:translate-x-0 md:translate-y-0
+          fixed z-50 flex flex-col transition-all duration-300 ease-in-out border-r border-white/10
+          md:relative md:inset-auto md:top-0 md:left-0 md:transform-none md:w-64 md:h-full md:shadow-none md:opacity-100 md:pointer-events-auto md:translate-x-0 md:translate-y-0
+          glass-panel
           ${
             isSidebarOpen
-              ? "top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[90%] max-w-sm h-[80%] rounded-2xl border border-slate-700 bg-slate-950"
-              : "top-1/2 left-1/2 -translate-x-[200%] -translate-y-1/2 w-[90%] h-[80%] opacity-0 pointer-events-none bg-slate-950 md:opacity-100 md:pointer-events-auto"
+              ? "top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[90%] max-w-sm h-[80%] rounded-2xl bg-slate-950/80"
+              : "top-1/2 left-1/2 -translate-x-[200%] -translate-y-1/2 w-[90%] h-[80%] opacity-0 pointer-events-none md:bg-transparent md:opacity-100 md:pointer-events-auto"
           }
         `}
       >
@@ -52,7 +53,7 @@ export const Layout: React.FC<LayoutProps> = ({
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 flex flex-col bg-slate-900 relative w-full h-full overflow-hidden">
+      <main className="flex-1 flex flex-col bg-transparent relative w-full h-full overflow-hidden">
         {/* Drag region for Electron title bar - Desktop & Mobile */}
         <div
           className="min-h-10 md:h-8 w-full select-none flex items-center px-4 md:px-0 shrink-0 pt-[env(safe-area-inset-top)] pb-2 md:pb-0 md:pt-0"
@@ -61,7 +62,7 @@ export const Layout: React.FC<LayoutProps> = ({
           {/* Mobile Hamburger Button */}
           <button
             onClick={() => onSidebarChange(true)}
-            className="text-slate-400 hover:text-white md:hidden mr-4"
+            className="text-cyan-400 hover:text-white md:hidden mr-4"
             style={
               { WebkitAppRegion: "no-drag" } as unknown as React.CSSProperties
             }

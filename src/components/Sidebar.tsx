@@ -100,11 +100,11 @@ const NoteItem = ({
       }}
       className={`
                 group relative p-2 md:p-2 py-3 rounded-lg cursor-pointer transition-all duration-200
-                flex items-center gap-2 select-none touch-manipulation
+                flex items-center gap-2 select-none touch-manipulation border border-transparent
                 ${
                   activeNoteId === note.id
-                    ? "bg-white/10 text-white shadow-lg"
-                    : "hover:bg-white/5 hover:text-white active:bg-white/5 text-slate-400"
+                    ? "bg-cyan-500/10 border-cyan-500/50 text-cyan-300 shadow-[0_0_10px_rgba(0,255,255,0.15)]"
+                    : "hover:bg-white/5 hover:text-cyan-200 hover:border-white/10 text-slate-400"
                 }
                 ${isDragging ? "opacity-30 z-50 bg-slate-800" : ""}
             `}
@@ -195,10 +195,10 @@ const FolderItem = ({
     >
       <div
         className={`
-            flex items-center justify-between p-2 rounded-lg cursor-pointer text-slate-400 hover:text-slate-100 hover:bg-white/5 transition-colors group select-none touch-manipulation
+            flex items-center justify-between p-2 rounded-lg cursor-pointer text-slate-400 hover:text-cyan-200 hover:bg-white/5 transition-all group select-none touch-manipulation border border-transparent
             ${
               isDroppableOver || isOver // Highlight if dragging over folder itself or its drop zone
-                ? "bg-blue-500/20 border border-blue-500/30"
+                ? "bg-cyan-500/20 border-cyan-500/50 shadow-[0_0_10px_rgba(0,255,255,0.1)]"
                 : ""
             }
         `}
@@ -219,9 +219,12 @@ const FolderItem = ({
           </div>
 
           {expanded ? (
-            <FolderOpen size={16} className="text-yellow-500/80" />
+            <FolderOpen
+              size={16}
+              className="text-fuchsia-500/80 drop-shadow-[0_0_5px_rgba(255,0,255,0.4)]"
+            />
           ) : (
-            <FolderIcon size={16} className="text-yellow-500/80" />
+            <FolderIcon size={16} className="text-fuchsia-500/80" />
           )}
           {isRenaming ? (
             <input
@@ -512,13 +515,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
       onDragOver={handleDragOver}
       onDragEnd={handleDragEnd}
     >
-      <div className="flex flex-col h-full bg-slate-950 text-slate-300">
+      <div className="flex flex-col h-full bg-transparent text-slate-300">
         {/* Drag Region for Sidebar */}
         <div
           className="p-6 border-b border-white/5 relative shrink-0 pt-[calc(1.5rem+env(safe-area-inset-top))]"
           style={{ WebkitAppRegion: "drag" } as unknown as React.CSSProperties}
         >
-          <h1 className="text-3xl font-bold bg-linear-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent text-center">
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-cyan-400 to-fuchsia-500 bg-clip-text text-transparent text-center drop-shadow-[0_0_10px_rgba(0,255,255,0.3)]">
             NBF Notes
           </h1>
         </div>
@@ -608,7 +611,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </div>
 
         {/* Footer Actions */}
-        <div className="p-3 border-t border-white/5 space-y-2 pb-[calc(0.75rem+env(safe-area-inset-bottom))] bg-slate-950">
+        <div className="p-3 border-t border-white/5 space-y-2 pb-[calc(0.75rem+env(safe-area-inset-bottom))] bg-transparent">
           {/* Add Note Buttons */}
           <div className="grid grid-cols-3 gap-1">
             <button

@@ -50,12 +50,13 @@ Stay organized with a task manager that goes beyond simple checkboxes:
 - **Drag Reordering**: Organize your image collections by dragging images to new positions.
 - **Native Storage**: Uses your device's native file system for efficient storage.
 
-### 🎨 Modern UI
+### 🎨 Neon Glass Fusion UI
 
-- **Responsive Design**: Automatically adapts from a desktop sidebar to a mobile **Drawer Navigation** with hamburger menu.
-- **Mobile Optimized**: Sidebar allows swipe gestures, and modals are designed for touch.
-- **Safe Area Aware**: Designed to respect mobile notches and status bars.
-- **Dark Mode**: Built with a "dark-first" aesthetic using **TailwindCSS**.
+- **Aesthetic**: A high-fidelity **"Neon Glass Fusion"** design featuring a deep midnight navy background, floating glassmorphic panels, and vibrant neon accents (Cyan/Magenta).
+- **Responsive Glass**: Translucent components that adapt beautifully to any screen size, featuring real-time background blur and glowing borders.
+- **Smooth Interactions**: Enhanced drag-and-drop mechanics with fluid transitions and visual feedback (`transition-colors` optimizations).
+- **Mobile Optimized**: Sidebar allows swipe gestures, and modals are designed for touch with specific "safe area" handling.
+- **Premium Feel**: Custom scrollbars, glowing typography, and a cohesive dark-first experience.
 
 ---
 

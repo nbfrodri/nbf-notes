@@ -57,8 +57,10 @@ const SortableImage = ({
       style={style}
       {...attributes}
       {...listeners}
-      className={`group relative flex flex-col bg-slate-800 rounded-xl overflow-hidden border border-slate-700 shadow-sm hover:shadow-md transition-all hover:border-slate-500 touch-manipulation select-none ${
-        isDragging ? "z-50 opacity-50" : ""
+      className={`group relative flex flex-col bg-slate-900/40 backdrop-blur-md rounded-xl overflow-hidden border border-white/5 shadow-glass transition-colors duration-200 hover:border-cyan-500/50 hover:shadow-[0_0_15px_rgba(0,255,255,0.15)] touch-manipulation select-none ${
+        isDragging
+          ? "z-50 opacity-90 border-cyan-500 shadow-[0_0_25px_rgba(0,255,255,0.25)] scale-105"
+          : "hover:-translate-y-1"
       }`}
     >
       <div
@@ -86,7 +88,7 @@ const SortableImage = ({
           }}
         />
       </div>
-      <div className="grid grid-cols-[1fr_auto] divide-x divide-slate-700 bg-slate-800 border-t border-slate-700">
+      <div className="grid grid-cols-[1fr_auto] divide-x divide-white/10 bg-white/5 border-t border-white/10">
         <div className="p-2 md:p-3 min-w-0 flex items-center">
           <input
             className="w-full text-[10px] md:text-xs text-slate-300 bg-transparent border border-transparent hover:border-slate-600 focus:border-blue-500 focus:bg-slate-900 focus:outline-none rounded px-1 py-0.5 truncate transition-all"
@@ -339,7 +341,7 @@ export const ImageCollection: React.FC<ImageCollectionProps> = ({
           value={note.title}
           onChange={(e) => onUpdate(note.id, { title: e.target.value })}
           placeholder="Collection Title"
-          className="bg-transparent text-4xl font-bold text-white placeholder-slate-600 focus:outline-none mb-8 w-full"
+          className="bg-transparent text-4xl font-bold text-white placeholder-slate-600 focus:outline-none mb-8 w-full drop-shadow-[0_0_10px_rgba(255,255,255,0.2)]"
         />
 
         <DndContext
@@ -354,7 +356,7 @@ export const ImageCollection: React.FC<ImageCollectionProps> = ({
               <p className="mb-6">Upload images to start your collection</p>
               <button
                 onClick={handleUploadClick}
-                className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white px-6 py-3 rounded-lg font-medium transition-colors"
+                className="flex items-center gap-2 bg-cyan-600/20 hover:bg-cyan-600/40 text-cyan-200 border border-cyan-500/20 hover:border-cyan-500/50 px-6 py-3 rounded-lg font-medium transition-all shadow-[0_0_10px_rgba(0,255,255,0.1)]"
               >
                 <Plus size={20} />
                 <span>Add Images</span>

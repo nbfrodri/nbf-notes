@@ -133,7 +133,10 @@ function App() {
               setActiveNoteId(id);
               setIsSidebarOpen(false); // Close sidebar on selection
             }}
-            onAddNote={addNote}
+            onAddNote={(type, folderId) => {
+              addNote(type, folderId);
+              setIsSidebarOpen(false);
+            }}
             onDeleteNote={requestDeleteNote}
             onAddFolder={addFolder}
             onUpdateFolder={updateFolder}
