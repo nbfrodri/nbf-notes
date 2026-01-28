@@ -67,11 +67,10 @@ export function useNotes() {
           for (const img of oldImages) {
             if (!newImageIds.has(img.id)) {
               // Determine filename to delete.
-              // The URL stored is typically "media://<uuid>.png" or similar.
-              // deleteImage handles the "media://" stripping.
-              if (img.url) {
-                console.log("Cleaning up image:", img.url);
-                storageService.deleteImage(img.url);
+              const pathToDelete = img.storagePath || img.url;
+              if (pathToDelete) {
+                console.log("Cleaning up image:", pathToDelete);
+                storageService.deleteImage(pathToDelete);
               }
             }
           }
@@ -98,8 +97,11 @@ export function useNotes() {
         const images = JSON.parse(note.content);
         if (Array.isArray(images)) {
           for (const img of images) {
-            if (img.url) {
-              storageService.deleteImage(img.url);
+            // Check for storagePath (New) or url (Legacy/Electron)
+            const pathToDelete = img.storagePath || img.url;
+            if (pathToDelete) {
+              console.log("Deleting associated image:", pathToDelete);
+              storageService.deleteImage(pathToDelete);
             }
           }
         }

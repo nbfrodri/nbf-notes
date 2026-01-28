@@ -136,21 +136,29 @@ Build via Android Studio: `Build > Build Bundle(s) / APK(s) > Build APK(s)`.
 
 Your privacy is paramount. **NBF Notes** stores all data locally on your device using a transparent file structure:
 
-- **Desktop**: `%APPDATA%\nbf-notes`
-- **Mobile**: App-specific internal storage
+- **Desktop**: `%APPDATA%\nbf-notes` (Wiped on uninstall)
+- **Mobile**: App-specific internal storage (Wiped on uninstall)
 
 ### File Structure
 
 - **Notes**: Stored as individual `.json` files in the `notes/` directory.
-- **Images**: Stored as standard image files in the `images/` directory.
+- **Images**:
+  - **Desktop**: Stored in the `images/` subdirectory.
+  - **Mobile**: Stored directly in the app's root data directory for maximum compatibility.
 
-### 🧹 Automatic Cleanup
+### 📱 Mobile Storage Strategy
 
-To keep your device clean, the app performs intelligent maintenance:
+- **Internal Storage**: On Android, data is stored in the app's protected internal storage (`Directory.Data`).
+- **Data Persistence**: Files are preserved across app restarts and updates.
+- **Uninstall Data Wipe**: Uninstalling the app automatically and securely wipes all stored data (notes and images) from the device, ensuring no residual files are left behind.
 
-- **Instant Deletion**: When you delete a note, its file is immediately removed.
-- **Image Cleanup**: Deleting a note automatically deletes all its associated images.
-- **Orphan Removal**: On every startup, the app scans for "orphan" images (files not referenced by any note) and safely removes them to free up space.
+### 🧹 Maintenance & Cleanup
+
+To keep your storage optimized:
+
+- **Instant Deletion**: When you delete a note, its JSON file is immediately removed from disk.
+- **Image Cleanup**: Deleting a note automatically deletes all associated images referenced within it.
+- **Manual Control**: Unlike cloud apps that keep "trash" folders, deletion here is permanent and immediate to respect your storage space.
 
 ---
 

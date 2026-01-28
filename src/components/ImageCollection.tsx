@@ -26,13 +26,20 @@ interface ImageCollectionProps {
   onUpdate: (id: string, updates: Partial<Note>) => void;
 }
 
+interface ImageItem {
+  id: string;
+  storagePath: string; // The filename/path stored in FS
+  name: string;
+  displayUrl?: string; // Resolved runtime URL for display
+}
+
 const SortableImage = ({
   img,
   removeImage,
   handleRename,
   onClick,
 }: {
-  img: { id: string; url: string; name: string };
+  img: ImageItem;
   removeImage: (id: string) => void;
   handleRename: (id: string, name: string) => void;
   onClick: () => void;
@@ -68,25 +75,31 @@ const SortableImage = ({
         onClick={onClick}
         title="View full size"
       >
-        <img
-          src={img.url}
-          alt={img.name}
-          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-          loading="lazy"
-          draggable={false}
-          onError={(e) => {
-            console.error("Image load error:", img.url, e);
-            e.currentTarget.style.display = "none";
-            e.currentTarget.parentElement?.classList.add(
-              "flex",
-              "items-center",
-              "justify-center",
-              "text-red-500",
-            );
-            e.currentTarget.parentElement!.innerHTML =
-              "<span>Failed to load</span>";
-          }}
-        />
+        {img.displayUrl ? (
+          <img
+            src={img.displayUrl}
+            alt={img.name}
+            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+            loading="lazy"
+            draggable={false}
+            onError={(e) => {
+              console.error("Image load error:", img.displayUrl, e);
+              e.currentTarget.style.display = "none";
+              e.currentTarget.parentElement?.classList.add(
+                "flex",
+                "items-center",
+                "justify-center",
+                "text-red-500",
+              );
+              e.currentTarget.parentElement!.innerHTML =
+                "<span>Failed to load</span>";
+            }}
+          />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center text-slate-500">
+            <div className="animate-pulse bg-slate-800 w-full h-full" />
+          </div>
+        )}
       </div>
       <div className="grid grid-cols-[1fr_auto] divide-x divide-white/10 bg-white/5 border-t border-white/10">
         <div className="p-2 md:p-3 min-w-0 flex items-center">
@@ -120,9 +133,7 @@ export const ImageCollection: React.FC<ImageCollectionProps> = ({
   note,
   onUpdate,
 }) => {
-  const [images, setImages] = useState<
-    { id: string; url: string; name: string }[]
-  >([]);
+  const [images, setImages] = useState<ImageItem[]>([]);
   // Use index for navigation
   const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(
     null,
@@ -146,20 +157,43 @@ export const ImageCollection: React.FC<ImageCollectionProps> = ({
     }),
   );
 
-  // Parse images from content on load
+  // Parse images from content on load and resolving URLs
   useEffect(() => {
     if (note?.content) {
       try {
         const parsed = JSON.parse(note.content);
         if (Array.isArray(parsed)) {
-          // Migration: Convert string[] to object[] if needed
-          const normalized = parsed.map((item) => {
+          console.log("ImageCollection: Parsed content", parsed);
+          // Normalize and Migrate
+          const normalized = parsed.map((item: any) => {
+            // Backward compatibility: Array of strings
             if (typeof item === "string") {
-              return { id: item, url: item, name: "Untitled Image" }; // Backward compatibility
+              const filename = extractFilename(item);
+              return {
+                id: crypto.randomUUID(),
+                storagePath: filename,
+                name: "Untitled Image",
+              };
+            }
+            // Backward compatibility: Old object structure { id, url, name }
+            // If it has 'url' but not 'storagePath', treat 'url' as potentially broken full path
+            // and extract filename.
+            if (item.url && !item.storagePath) {
+              const filename = extractFilename(item.url);
+              return {
+                ...item,
+                storagePath: filename,
+                displayUrl: undefined, // Force resolution
+              };
             }
             return item;
           });
+
+          // Set initial state (displayUrl might be missing)
           setImages(normalized);
+
+          // Resolve URLs asynchronously
+          resolveImageUrls(normalized);
         } else {
           setImages([]);
         }
@@ -168,19 +202,51 @@ export const ImageCollection: React.FC<ImageCollectionProps> = ({
         setImages([]);
       }
     } else {
-      // Only set empty if note is defined, but content is empty
       if (note) setImages([]);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [note?.id]);
+  }, [note?.id]); // Only re-run if note ID changes (load new note)
 
-  const saveImages = (
-    newImages: { id: string; url: string; name: string }[],
-  ) => {
-    console.log("ImageCollection: Saving images", newImages);
-    setImages(newImages);
+  const extractFilename = (pathOrUrl: string): string => {
+    // Basic extraction logic
+    let clean = pathOrUrl;
+    if (clean.startsWith("media://")) {
+      return clean.replace("media://", "");
+    }
+    if (clean.includes("/")) {
+      clean = clean.substring(clean.lastIndexOf("/") + 1);
+    }
+    if (clean.includes("?")) {
+      clean = clean.split("?")[0];
+    }
+    return clean;
+  };
+
+  const resolveImageUrls = async (items: ImageItem[]) => {
+    console.log("ImageCollection: Resolving URLs for", items.length, "items");
+    const updatedItems = await Promise.all(
+      items.map(async (item) => {
+        if (item.displayUrl) return item; // Already resolved
+        const url = await storageService.getImageUrl(item.storagePath);
+        return { ...item, displayUrl: url };
+      }),
+    );
+    // Only update if something changed to avoid loops if this was triggered nicely
+    // Use functional update to ensure we don't overwrite user edits if any occurred during load?
+    // Actually safe to just set here for now as this runs on load.
+    setImages(updatedItems);
+  };
+
+  // Helper to save state to note content (persisting ONLY storage data)
+  const saveToNote = (currentImages: ImageItem[]) => {
+    // Strip displayUrl before saving
+    const toSave = currentImages.map(({ id, storagePath, name }) => ({
+      id,
+      storagePath,
+      name,
+    }));
     if (note) {
-      onUpdate(note.id, { content: JSON.stringify(newImages) });
+      onUpdate(note.id, { content: JSON.stringify(toSave) });
     }
   };
 
@@ -192,17 +258,9 @@ export const ImageCollection: React.FC<ImageCollectionProps> = ({
         const oldIndex = items.findIndex((item) => item.id === active.id);
         const newIndex = items.findIndex((item) => item.id === over.id);
         const newItems = arrayMove(items, oldIndex, newIndex);
-        if (note) {
-          // Defer update to avoid state mismatch during drag?
-          // Actually usually fine. But better to update store after state.
-          // Using callback form setImages is good, but we need to update note.
-          // We can do it in useEffect or here. Here is fine.
-          setTimeout(
-            () => onUpdate(note.id, { content: JSON.stringify(newItems) }),
-            0,
-          );
-          return newItems;
-        }
+
+        // Defer save to update note
+        setTimeout(() => saveToNote(newItems), 0);
         return newItems;
       });
     }
@@ -216,28 +274,37 @@ export const ImageCollection: React.FC<ImageCollectionProps> = ({
     const files = e.target.files;
     console.log("ImageCollection: File input change", files);
     if (files && files.length > 0) {
-      const newImages: { id: string; url: string; name: string }[] = [];
+      const newItems: ImageItem[] = [];
+
       for (let i = 0; i < files.length; i++) {
         const file = files[i];
         console.log(`ImageCollection: Processing file ${file.name}`);
         try {
           const buffer = await file.arrayBuffer();
-          const imagePath = await storageService.saveImage(buffer);
+          // saveImage now returns the filename/storagePath
+          const storagePath = await storageService.saveImage(buffer);
+
+          // Resolve URL immediately for display
+          const displayUrl = await storageService.getImageUrl(storagePath);
 
           // Use filename as default name (remove extension)
           const name = file.name.replace(/\.[^/.]+$/, "");
 
-          newImages.push({
+          newItems.push({
             id: crypto.randomUUID(),
-            url: imagePath,
+            storagePath: storagePath,
             name: name,
+            displayUrl: displayUrl,
           });
         } catch (error) {
           console.error("ImageCollection: Failed to save image", error);
         }
       }
-      if (newImages.length > 0) {
-        saveImages([...images, ...newImages]);
+
+      if (newItems.length > 0) {
+        const updatedImages = [...images, ...newItems];
+        setImages(updatedImages);
+        saveToNote(updatedImages);
       }
     }
     // Reset input
@@ -248,7 +315,9 @@ export const ImageCollection: React.FC<ImageCollectionProps> = ({
 
   const removeImage = (idToRemove: string) => {
     const newImages = images.filter((img) => img.id !== idToRemove);
-    saveImages(newImages);
+    setImages(newImages); // Update UI
+    saveToNote(newImages); // Update Persistence
+
     // Determine what to do with selection if current image is removed
     if (selectedImageIndex !== null) {
       const currentId = images[selectedImageIndex]?.id;
@@ -266,7 +335,8 @@ export const ImageCollection: React.FC<ImageCollectionProps> = ({
     const updated = images.map((img) =>
       img.id === id ? { ...img, name: newName } : img,
     );
-    saveImages(updated);
+    setImages(updated);
+    saveToNote(updated);
   };
 
   const goToNext = useCallback(() => {
@@ -407,8 +477,6 @@ export const ImageCollection: React.FC<ImageCollectionProps> = ({
           onTouchMove={onTouchMove}
           onTouchEnd={onTouchEnd}
         >
-          {/* Close Button Removed as requested */}
-
           {/* Previous Button - Hidden on mobile */}
           <button
             className="absolute left-4 top-1/2 -translate-y-1/2 p-3 text-white/50 hover:text-white hover:bg-white/10 rounded-full transition-all z-50 hidden md:block"
@@ -434,13 +502,17 @@ export const ImageCollection: React.FC<ImageCollectionProps> = ({
           </button>
 
           {/* Image */}
-          <img
-            src={images[selectedImageIndex].url}
-            alt={images[selectedImageIndex].name}
-            className="max-w-full max-h-full object-contain rounded-lg shadow-2xl select-none"
-            onClick={(e) => e.stopPropagation()}
-            draggable={false}
-          />
+          {images[selectedImageIndex].displayUrl ? (
+            <img
+              src={images[selectedImageIndex].displayUrl}
+              alt={images[selectedImageIndex].name}
+              className="max-w-full max-h-full object-contain rounded-lg shadow-2xl select-none"
+              onClick={(e) => e.stopPropagation()}
+              draggable={false}
+            />
+          ) : (
+            <div className="text-white">Loading...</div>
+          )}
 
           <div className="absolute bottom-16 md:bottom-8 left-0 right-0 text-center pointer-events-none">
             <span className="text-white/80 bg-black/50 px-4 py-2 rounded-full text-sm font-medium backdrop-blur-sm">

@@ -6,8 +6,11 @@ export interface StorageService {
   saveNote(note: any): Promise<boolean>;
   deleteNote(id: string): Promise<boolean>;
   loadNotes(): Promise<any[]>;
+  deleteNote(id: string): Promise<boolean>;
+  loadNotes(): Promise<any[]>;
   deleteImage(fileName: string): Promise<boolean>;
   getAllImages(): Promise<string[]>;
+  getImageUrl(fileName: string): Promise<string>;
   platform: "electron" | "web" | "ios" | "android";
 }
 
@@ -23,7 +26,19 @@ class StorageServiceImpl implements StorageService {
 
   async saveImage(buffer: ArrayBuffer): Promise<string> {
     if (this.platform === "electron") {
-      return await window.electronAPI.saveImage(buffer);
+      // Electron implementation returns the raw filename now, meant to be used with getImageUrl
+      // For backward compatibility during transition or just cleaner storage, we store UUID.png
+      // The electronAPI.saveImage usually returned media://... we need to check that.
+      // Actually, looking at main.ts, it returns `media://${fileName}`.
+      // we want to extract just the filename from it if possible, OR
+      // we should update electron/main.ts to just return filename?
+      // For minimal perturbation, let's just strip the media:// prefix here or
+      // handle it.
+      // But wait, the plan said "Modify saveImage: Change return type... return filename".
+      // electronAPI.saveImage returns string.
+      const fullUrl = await window.electronAPI.saveImage(buffer);
+      // Extract filename
+      return fullUrl.replace("media://", "");
     }
 
     // Capacitor (Mobile) implementation
@@ -32,26 +47,23 @@ class StorageServiceImpl implements StorageService {
       const base64String = this.arrayBufferToBase64(buffer);
       const fileName = `${crypto.randomUUID()}.png`;
 
-      // Ensure directory exists
-      try {
-        await Filesystem.mkdir({
-          path: "images",
-          directory: Directory.Data,
-          recursive: true,
-        });
-      } catch (e) {
-        // Ignore if exists
-      }
+      // No need to create directory for root (it exists)
 
-      const savedFile = await Filesystem.writeFile({
-        path: `images/${fileName}`,
+      await Filesystem.writeFile({
+        path: fileName,
         data: base64String,
         directory: Directory.Data,
       });
 
-      // Return a displayable URL
-      return Capacitor.convertFileSrc(savedFile.uri);
-    } catch (error) {
+      // VERIFY WRITE IMMEDIATELY (Silently)
+      await Filesystem.stat({
+        path: fileName,
+        directory: Directory.Data,
+      });
+
+      // Return just the filename for storage
+      return fileName;
+    } catch (error: any) {
       console.error("StorageService: Failed to save image", error);
       throw error;
     }
@@ -74,7 +86,7 @@ class StorageServiceImpl implements StorageService {
           directory: Directory.Data,
           recursive: true,
         });
-      } catch (e) {
+      } catch {
         // Ignore if exists
       }
 
@@ -123,7 +135,7 @@ class StorageServiceImpl implements StorageService {
           directory: Directory.Data,
           recursive: true,
         });
-      } catch (e) {
+      } catch {
         // Ignore if exists
       }
 
@@ -172,19 +184,16 @@ class StorageServiceImpl implements StorageService {
     // Mobile
     try {
       // Extract filename safely.
-      // It might be a full Capacitor URL or just a filename.
-      // Usually simplistic approach: get basename if it looks like a path
       let cleanName = fileName;
       if (fileName.includes("/")) {
         cleanName = fileName.substring(fileName.lastIndexOf("/") + 1);
       }
-      // If query params exist
       if (cleanName.includes("?")) {
         cleanName = cleanName.split("?")[0];
       }
 
       await Filesystem.deleteFile({
-        path: `images/${cleanName}`,
+        path: cleanName,
         directory: Directory.Data,
       });
       return true;
@@ -201,26 +210,58 @@ class StorageServiceImpl implements StorageService {
 
     // Mobile
     try {
-      try {
-        await Filesystem.mkdir({
-          path: "images",
-          directory: Directory.Data,
-          recursive: true,
-        });
-      } catch (e) {
-        // Ignore
-      }
-
       const result = await Filesystem.readdir({
-        path: "images",
+        path: "",
         directory: Directory.Data,
       });
 
       // Filter and map to simple strings
-      return result.files.map((f) => (typeof f === "string" ? f : f.name));
+      return result.files
+        .map((f) => (typeof f === "string" ? f : f.name))
+        .filter((name) => name.endsWith(".png"));
     } catch (e) {
       console.error("Failed to list images mobile:", e);
       return [];
+    }
+  }
+
+  async getImageUrl(fileName: string): Promise<string> {
+    if (this.platform === "electron") {
+      return `media://${fileName}`;
+    }
+
+    // Mobile implementation
+    try {
+      // Read file directly as Base64 to bypass WebView URL/CSP issues
+      const fileData = await Filesystem.readFile({
+        path: fileName,
+        directory: Directory.Data,
+      });
+
+      // Assume PNG as per saveImage
+      return `data:image/png;base64,${fileData.data}`;
+    } catch (e: any) {
+      console.error("Failed to load image data mobile:", e);
+      try {
+        const dir = await Filesystem.readdir({
+          path: "",
+          directory: Directory.Data,
+        });
+        const files = dir.files
+          .map((f) => (typeof f === "string" ? f : f.name))
+          .join(", ");
+        window.alert(
+          `READ ERROR: ${
+            e.message
+          }\nTarget: ${fileName}\n\nExisting Files: ${files.substring(
+            0,
+            200,
+          )}...`,
+        );
+      } catch {
+        window.alert(`READ ERROR: ${e.message}\n(And failed to list dir)`);
+      }
+      return "";
     }
   }
 

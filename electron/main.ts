@@ -149,6 +149,7 @@ protocol.registerSchemesAsPrivileged([
 ]);
 
 app.whenReady().then(() => {
+  console.log("App UserData Path:", app.getPath("userData"));
   // Register 'media' protocol to serve files from userData/images
   // Register 'media' protocol to serve files from userData/images
   protocol.handle("media", (request) => {
